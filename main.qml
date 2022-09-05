@@ -42,18 +42,25 @@ Window {
                 anchors.fill: parent
                 focus: true
                 Keys.onLeftPressed: {
+                    // backwards moves shouldn't be allowed
+                    if (backwardsMove("left"))
+                        return
                     updatePositionTimer.stop()
                     frontRectangle.changeDirection("left")
                     frontRectangle.nextMove()
                     updatePositionTimer.restart()
                 }
                 Keys.onRightPressed:{
+                    if (backwardsMove("right"))
+                        return
                     updatePositionTimer.stop()
                     frontRectangle.changeDirection("right")
                     frontRectangle.nextMove()
                     updatePositionTimer.restart()
                 }
                 Keys.onUpPressed: {
+                    if (backwardsMove("up"))
+                        return
                     updatePositionTimer.stop()
                     frontRectangle.changeDirection("up")
                     frontRectangle.nextMove()
@@ -61,10 +68,30 @@ Window {
                 }
 
                 Keys.onDownPressed: {
+                    if (backwardsMove("down"))
+                        return
                     updatePositionTimer.stop()
                     frontRectangle.changeDirection("down")
                     frontRectangle.nextMove()
                     updatePositionTimer.restart()
+                }
+
+                function convertDirectionStringToInt(direction) {
+                    switch (direction) {
+                        case  "down":
+                          return -2
+                        case  "left":
+                          return -1
+                        case "right":
+                          return 1
+                        case    "up":
+                          return 2
+                    }
+                    return 3 // base case should never get here
+                }
+
+                function backwardsMove(move) {
+                    return (convertDirectionStringToInt(frontRectangle.direction) + convertDirectionStringToInt(move)) == 0
                 }
             }
 
@@ -255,7 +282,7 @@ Window {
                 snakeBody.itemAt(tailIndex).x = startX
                 snakeBody.itemAt(tailIndex).y = startY
                 snakeBody.itemAt(tailIndex).visible = true
-                if(tailIndex >= snakeBody.count - 1) {
+                if(tailIndex == (snakeBody.count - 1)) {
                     snakeWindow.gameWon()
                 }
             }
@@ -372,19 +399,27 @@ Window {
         }
     }
 
+    property bool hasGameBeenWon
+
     function gameOver() {
+        if (hasGameBeenWon) {
+            return
+        }
+
         gameRect.visible = false
         snakeWindow.title = "GAME OVER"
         scoreRectangle.visible = true
     }
 
     function gameWon() {
+        hasGameBeenWon = true
         gameRect.visible = false
         snakeWindow.title = "YOU WON!!!"
         scoreRectangle.visible = true
     }
 
     function restartGame() {
+        hasGameBeenWon = false
         scoreRectangle.visible = false
         snakeWindow.title = "Snake"
         gameRect.visible = true
